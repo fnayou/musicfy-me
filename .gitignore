@@ -1,0 +1,12 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+/compose.yaml
+/compose.yml
+.env.local
+.env.*.local
+/secrets/secrets.yaml
+/secrets/.secrets.*.tmp

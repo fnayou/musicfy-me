@@ -1,0 +1,18 @@
+name: Feature request
+description: Propose a user outcome or capability
+title: ""
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Problem and desired outcome
+      description: Who needs this, and what outcome should it enable?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List observable conditions that would satisfy the request.
+    validations:
+      required: true

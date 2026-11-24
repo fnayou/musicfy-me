@@ -1,0 +1,43 @@
+# Containerized tooling for MusicfyMe. Copy to `compose.yaml` (ignored by git).
+#
+# Scope: the dev container runs tests, lint, formatting and the export
+# converters (xlsx, JSONL, Markdown). It CANNOT read Apple Music: Music.app is
+# reachable only from the macOS host, so the extractor runs on the host with
+# `uv run`, never in a container.
+#
+# The sops service holds the project's encrypted secrets. There is none yet
+# (no API is used); the service exists so a secret can be added without
+# reworking the setup. It only runs on demand: `docker compose run --rm sops`.
+name: musicfy-me
+
+services:
+  dev:
+    image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+    container_name: musicfy_me_dev
+    init: true
+    tty: true
+    working_dir: /workspace
+    command: ["sleep", "infinity"]
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      # Keep the virtualenv out of the bind mount, so a host venv and a
+      # container venv never overwrite each other.
+      UV_PROJECT_ENVIRONMENT: /opt/venv
+      UV_LINK_MODE: copy
+    volumes:
+      - .:/workspace
+      - uv-cache:/root/.cache/uv
+
+  sops:
+    image: ghcr.io/getsops/sops:v3.10.2-alpine
+    container_name: musicfy_me_sops
+    profiles: ["tools"]
+    working_dir: /secrets
+    environment:
+      SOPS_AGE_KEY_FILE: /age/key.txt
+    volumes:
+      - ./secrets:/secrets
+      - ./age:/age:ro
+
+volumes:
+  uv-cache:

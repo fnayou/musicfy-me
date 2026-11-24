@@ -1,0 +1,60 @@
+version: "3"
+
+includes:
+  sops:
+    taskfile: .taskfiles/sops-tasks.yml
+    dir: .
+  brand:
+    taskfile: .taskfiles/brand-tasks.yml
+    dir: .
+
+tasks:
+  default:
+    desc: List available project tasks
+    cmds:
+      - task --list
+
+  doctor:
+    desc: Check local project prerequisites
+    cmds:
+      - python3 scripts/doctor.py
+
+  setup:
+    desc: Initialize missing local configuration without overwriting files
+    cmds:
+      - python3 scripts/setup.py
+
+  docker:config:
+    desc: Validate Compose configuration without printing resolved values
+    cmds:
+      - docker compose -f compose.example.yaml config --quiet
+
+  docker:start:
+    desc: Start configured services without recreating containers
+    cmds:
+      - docker compose up -d --no-recreate
+
+  docker:recreate:
+    desc: Recreate services with current configuration
+    cmds:
+      - docker compose up -d --force-recreate
+
+  docker:stop:
+    desc: Stop services and preserve data
+    cmds:
+      - docker compose stop
+
+  docker:down:
+    desc: Remove services and networks while preserving volumes
+    cmds:
+      - docker compose down
+
+  docker:logs:
+    desc: Follow service logs
+    cmds:
+      - docker compose logs -f
+
+  docker:ps:
+    desc: List project services
+    cmds:
+      - docker compose ps

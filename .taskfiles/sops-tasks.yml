@@ -1,0 +1,41 @@
+version: "3"
+
+# SOPS + age secrets, run in the `sops` service of compose.yaml. Plaintext
+# secrets/secrets.yaml is gitignored. Only secrets/secrets.sops.yaml is
+# committed. Nothing in the project needs a secret yet.
+
+vars:
+  HOST_UID:
+    sh: id -u
+  HOST_GID:
+    sh: id -g
+  # Run as the caller, so files written through ./secrets stay editable on the host.
+  SOPS_RUN: docker compose --profile tools run --rm -u {{.HOST_UID}}:{{.HOST_GID}} --entrypoint sops sops
+
+tasks:
+  generate-age-key:
+    desc: Generate the age keypair in age/ and seed secrets/.sops.yaml (never overwrites)
+    cmds:
+      - bash age/generate-age-key.sh
+    silent: true
+
+  encrypt:
+    desc: Encrypt secrets/secrets.yaml into secrets/secrets.sops.yaml
+    deps: [":setup"]
+    # Write to a temp file, then move: a failed run must not truncate the
+    # committed encrypted file.
+    cmds:
+      - cmd: test -s secrets/secrets.yaml || { echo "secrets/secrets.yaml is missing or empty; run task sops:decrypt first." >&2; exit 1; }
+      - cmd: "{{.SOPS_RUN}} -e /secrets/secrets.yaml > secrets/.secrets.sops.yaml.tmp"
+      - cmd: mv secrets/.secrets.sops.yaml.tmp secrets/secrets.sops.yaml
+      - cmd: echo "sops - secrets encrypted to secrets/secrets.sops.yaml"
+    silent: true
+
+  decrypt:
+    desc: Decrypt secrets/secrets.sops.yaml into secrets/secrets.yaml (plaintext, gitignored)
+    deps: [":setup"]
+    cmds:
+      - cmd: umask 077 && {{.SOPS_RUN}} -d /secrets/secrets.sops.yaml > secrets/.secrets.yaml.tmp
+      - cmd: mv secrets/.secrets.yaml.tmp secrets/secrets.yaml
+      - cmd: echo "sops - decrypted to secrets/secrets.yaml, do not commit it"
+    silent: true

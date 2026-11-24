@@ -1,0 +1,12 @@
+version: "3"
+
+tasks:
+  generate:
+    desc: Generate brand assets
+    cmds:
+      - python3 scripts/brand_generate.py --generate
+
+  check:
+    desc: Check brand assets are current
+    cmds:
+      - python3 scripts/brand_generate.py --check

@@ -1,0 +1,5 @@
+# Private age keys must never be committed: ignore everything here...
+*
+# ...except this file and the key generation script.
+!.gitignore
+!generate-age-key.sh
